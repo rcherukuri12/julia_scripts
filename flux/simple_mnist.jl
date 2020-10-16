@@ -1,7 +1,7 @@
 #simple MNIST example
 using Base64
 using Flux,Statistics,BenchmarkTools, MLBase, Flux.Data.MNIST
-using Flux: onehotbatch, onecold, throttle
+using Flux: onehotbatch, onecold
 using Base.Iterators: repeated
 using ColorTypes
 using MLJBase
