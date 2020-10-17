@@ -24,9 +24,9 @@ m = Chain(
                 Dense(784,32,relu),
                 Dense(32,10),
                 softmax
-         )
+         ) |> gpu
 
-loss(x, y) = Flux.Losses.crossentropy(m(X),Y) |> gpu
+loss(x, y) = Flux.Losses.crossentropy(m(X),Y)
 data = Flux.Data.DataLoader((X, Y), batchsize=128) |> gpu
 #data = Base.Iterators.repeated(data,200)
 opt = Flux.Optimise.ADAM(0.1) |> gpu
