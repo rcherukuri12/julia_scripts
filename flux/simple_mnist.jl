@@ -32,9 +32,9 @@ opt = Flux.Optimise.ADAM(0.1)
 tX = hcat(float.(reshape.(Flux.Data.MNIST.images(:test), :))...)
 tY = onehotbatch(Flux.Data.MNIST.labels(:test), 0:9)
 
-
-Flux.Optimise.train!(loss, Flux.params(m), data, opt, cb =  () -> println(loss(tX,tY)))
+using IterTools: ncycle
+Flux.Optimise.train!(loss, Flux.params(m), ncycle(data, 2), opt, cb =  () -> println(loss(tX,tY)))
 
 acc(x, y) = mean(onecold((m(x))) .== onecold(y))
 @show acc(tX, tY)
-#@show MLJBase.confusion_matrix(m(tX),tY)
+#@show MLJBase.confusion_matrix(onecold((m(tX))),onecold(tY))
