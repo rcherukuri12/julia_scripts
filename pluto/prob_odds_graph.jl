@@ -20,7 +20,7 @@ prob = collect(0.01:0.1:0.99)
 oddsA = [odds(i) for i in prob]
 
 # ╔═╡ 754ac190-37cb-411f-8549-a238447f0c91
-plot(prob,oddsA)
+plot(prob,oddsA,title="Odds vs Probability graph",xlabel="probability",ylabel="Odds")
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
