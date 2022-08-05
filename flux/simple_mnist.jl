@@ -1,40 +1,35 @@
 #simple MNIST example
 using Base64
-using Flux,Statistics,BenchmarkTools, MLBase, Flux.Data.MNIST
-using Flux: onehotbatch, onecold
-using Base.Iterators: repeated
+using Flux,Statistics,BenchmarkTools, MLBase
 using ColorTypes
 using MLJBase
+using MLJ
+using MLDatasets: MNIST
+using Flux: train!, onehotbatch
 
-#load training dataset
-imgs = Flux.Data.MNIST.images()
-print(size(imgs))
-# flatten all thsimple_mniste 28x28 into 764 input [reshape(image,:) for image in imgs ]
-# Reorder the layout of the data for the ANN
-imagestrip(image::Matrix{<:ColorTypes.Gray}) = Float32.(reshape(image, :))
-X = hcat(imagestrip.(imgs)...)
-#Target to one-hot
-labels = Flux.Data.MNIST.labels()
-Y = onehotbatch(labels,0:9)
-# defining the model ( a neural network )
-m = Chain(
-                Dense(784,32,relu),
-                Dense(32,10),
-                softmax
-         )
+x_train, y_train = MNIST(:train)[:];
+x_test, y_test = MNIST(:test)[:];
 
-loss(x, y) = Flux.Losses.crossentropy(m(X),Y)
-data = Flux.Data.DataLoader((X, Y), batchsize=128)
-#data = Base.Iterators.repeated(data,200)
-opt = Flux.Optimise.ADAM(0.1)
+x_train = Float32.(x_train)
+y_train = Flux.onehotbatch(y_train, 0:9)
+model = Chain(
+    Dense(784, 256, relu),
+    Dense(256, 64, relu),
+    Dense(64, 128, relu),
+    Dense(128, 10, relu), softmax
+)
 
-# test dataset
-tX = hcat(float.(reshape.(Flux.Data.MNIST.images(:test), :))...)
-tY = onehotbatch(Flux.Data.MNIST.labels(:test), 0:9)
+loss(x, y) = Flux.Losses.logitcrossentropy(model(x), y)
+optimizer = ADAM(0.01)
+#parameters = params(model)
+train_data = [(Flux.flatten(x_train), y_train)]
+test_data = [(Flux.flatten(x_test), y_test)]
 
-using IterTools: ncycle
-Flux.Optimise.train!(loss, Flux.params(m), ncycle(data, 2), opt, cb =  () -> println(loss(tX,tY)))
+Flux.@epochs 400 Flux.train!(loss, Flux.params(model), train_data, optimizer)
 
-acc(x, y) = mean(onecold((m(x))) .== onecold(y))
-@show acc(tX, tY)
-#@show MLJBase.confusion_matrix(onecold((m(tX))),onecold(tY))
+# using IterTools: ncycle
+# Flux.Optimise.train!(loss, Flux.params(m), ncycle(data, 2), opt, cb =  () -> println(loss(tX,tY)))
+pred = Flux.onecold(model(Flux.flatten(x_test)),[0,1,2,3,4,5,6,7,8,9])
+print(MLJ.Accuracy()(pred, y_test))
+display(MLJBase.ConfusionMatrix()(pred, y_test))
+print("\n")
